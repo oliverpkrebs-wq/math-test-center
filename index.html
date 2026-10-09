@@ -52,11 +52,17 @@ button.secondary{background:#64748b}.danger{color:#b91c1c}.error{color:#b91c1c;f
 
 <section id="home" class="card hidden">
   <div class="topbar"><div><h1>Welcome! 👋</h1><p id="who"></p></div><button class="secondary" id="logout">Log Out</button></div>
-  <h2>Choose a test</h2>
-  <div class="menu">
-    <button onclick="startTest('geometry')">📐 Geometry — 30 Questions + 2 Bonuses</button>
-    <button onclick="startTest('fifth')">🧮 5th Grade Math — 30 Questions + 2 Bonuses</button>
-  </div>
+  <h2>Choose any grade or math level</h2>
+  <p>From early counting through college math. Every test has 30 regular questions, 2 bonus questions, and a 3-minute timer.</p>
+  <label for="levelSelect">Grade or level</label>
+  <select id="levelSelect" style="width:100%;padding:14px;border:2px solid #d9e0eb;border-radius:10px;font-size:16px;margin:7px 0 14px">
+    <optgroup label="Early Math"><option>Pre-K Math</option><option>Kindergarten Math</option><option>1st Grade Math</option><option>2nd Grade Math</option><option>3rd Grade Math</option><option>4th Grade Math</option><option>5th Grade Math</option></optgroup>
+    <optgroup label="Middle School"><option>6th Grade Math</option><option>7th Grade Math</option><option>8th Grade Math</option><option>Arithmetic</option><option>Pre-Algebra</option></optgroup>
+    <optgroup label="High School"><option>Algebra I</option><option>Geometry</option><option>Algebra II</option><option>Trigonometry</option><option>Precalculus</option><option>9th Grade Math</option><option>10th Grade Math</option><option>11th Grade Math</option><option>12th Grade Math</option></optgroup>
+    <optgroup label="College & Advanced Math"><option>Calculus I</option><option>Statistics</option><option>Linear Algebra</option></optgroup>
+  </select>
+  <button id="startSelected">Start Selected Test →</button>
+  <div id="history"></div>
   <div id="history"></div>
 </section>
 
@@ -83,74 +89,170 @@ button.secondary{background:#64748b}.danger{color:#b91c1c}.error{color:#b91c1c;f
 <div id="clockWarning" class="clock-warning hidden" title="30 seconds remaining">🕐</div>
 
 <script>
-const geometry = [
-["A triangle has angles 50° and 60°. What is the third angle?","70"],
-["How many sides does a hexagon have?","6"],
-["What is the perimeter of a square with side 8 cm?","32"],
-["What is the area of a rectangle 7 cm by 5 cm?","35"],
-["How many degrees are in a right angle?","90"],
-["A shape with 4 equal sides is called what?","square"],
-["What is the area of a triangle with base 10 and height 6?","30"],
-["How many faces does a cube have?","6"],
-["What is the perimeter of a rectangle 9 by 4?","26"],
-["How many degrees are in a full turn?","360"],
-["What is the name of a triangle with 3 equal sides?","equilateral"],
-["How many edges does a cube have?","12"],
-["What is the area of a square with side 9?","81"],
-["A line segment from the center of a circle to its edge is called what?","radius"],
-["What is the diameter of a circle with radius 5?","10"],
-["How many vertices does a rectangular prism have?","8"],
-["What is the perimeter of a triangle with sides 5, 6, and 7?","18"],
-["Parallel lines do what?","never intersect"],
-["What is 1/2 of a 90° angle?","45"],
-["How many sides does an octagon have?","8"],
-["What is the area of a rectangle 12 by 3?","36"],
-["What is the perimeter of a square with side 11?","44"],
-["A 3-D shape with two circular bases is a what?","cylinder"],
-["How many vertices does a triangular prism have?","6"],
-["What is the sum of the angles in a triangle?","180"],
-["What is the area of a square with side 12?","144"],
-["A shape with 5 sides is called a what?","pentagon"],
-["How many degrees are in a straight angle?","180"],
-["What is the volume of a cube with side 3?","27"],
-["What is the circumference of a circle formula using π and diameter?","πd"]
-];
-const fifth = [
-["What is 4,325 + 2,718?","7043"],
-["What is 8,000 - 3,456?","4544"],
-["What is 36 × 7?","252"],
-["What is 864 ÷ 8?","108"],
-["What is 3/4 + 1/4?","1"],
-["What is 5/6 - 2/6?","1/2"],
-["What is 0.5 as a fraction?","1/2"],
-["What is 3.75 + 2.4?","6.15"],
-["What is 25% of 80?","20"],
-["Round 6,748 to the nearest hundred.","6700"],
-["What is 7 × 8 × 2?","112"],
-["What is 1/5 of 45?","9"],
-["What is the greatest common factor of 12 and 18?","6"],
-["What is the least common multiple of 4 and 6?","12"],
-["What is 2.5 × 4?","10"],
-["What is 9.6 ÷ 3?","3.2"],
-["A box has 24 pencils shared equally among 6 students. How many each?","4"],
-["What is 2/3 of 18?","12"],
-["Write 0.75 as a fraction in simplest form.","3/4"],
-["What is 5²?","25"],
-["What is the perimeter of a rectangle 10 by 6?","32"],
-["What is the area of a rectangle 9 by 8?","72"],
-["What is 1,000 × 6?","6000"],
-["What is 7,200 ÷ 100?","72"],
-["What is 45% of 100?","45"],
-["What is 3/5 as a decimal?","0.6"],
-["What is 4.2 + 1.85?","6.05"],
-["What is 12 × 15?","180"],
-["What is 5,000 - 999?","4001"],
-["A recipe needs 3/4 cup of sugar. How much is that in decimal form?","0.75"]
-];
-const bonuses = [
-["BONUS: What is 15% of 200?","30"],
-["BONUS: A rectangle has area 48 and width 6. What is its length?","8"]
-];
+const LEVELS = ["Pre-K Math","Kindergarten Math","1st Grade Math","2nd Grade Math","3rd Grade Math","4th Grade Math","5th Grade Math","6th Grade Math","7th Grade Math","8th Grade Math","Arithmetic","Pre-Algebra","Algebra I","Geometry","Algebra II","Trigonometry","Precalculus","9th Grade Math","10th Grade Math","11th Grade Math","12th Grade Math","Calculus I","Statistics","Linear Algebra"];
+const q=(text,answer)=>[text,String(answer)];
+function makeQuestions(level){
+ const out=[];
+ const add=(text,ans)=>out.push(q(text,ans));
+ const n=i=>i+1;
+ for(let i=0;i<32;i++){
+  const a=2+(i*3)%17, b=1+(i*5)%12, c=2+(i*2)%9;
+  if(level==="Pre-K Math"){
+   const k=i%8;
+   if(k===0)add(`Count these: ${'● '.repeat(1+i%5).trim()}. How many?`,1+i%5);
+   if(k===1)add(`What number comes after ${i%9}?`,i%9+1);
+   if(k===2)add(`Which is bigger: ${a%6+1} or ${b%6+1}?`,Math.max(a%6+1,b%6+1));
+   if(k===3)add(`What is ${i%4+1} + ${i%3+1}?`,i%4+1+i%3+1);
+   if(k===4)add(`What is ${i%5+2} − 1?`,i%5+1);
+   if(k===5)add(`How many sides does a triangle have?`,3);
+   if(k===6)add(`What number comes before ${i%8+2}?`,i%8+1);
+   if(k===7)add(`How many corners does a square have?`,4);
+  } else if(level==="Kindergarten Math" || level==="1st Grade Math"){
+   const k=i%8;
+   if(k===0)add(`What is ${a} + ${b}?`,a+b);
+   if(k===1)add(`What is ${a+b} − ${b}?`,a);
+   if(k===2)add(`What number comes after ${20+i}?`,21+i);
+   if(k===3)add(`What is ${i%5+1} more than ${10+i}?`,11+i+i%5);
+   if(k===4)add(`How many sides does a hexagon have?`,6);
+   if(k===5)add(`Which is greater: ${a} or ${b}?`,Math.max(a,b));
+   if(k===6)add(`What is ${i%10} + 10?`,i%10+10);
+   if(k===7)add(`There are ${a} apples and ${b} more. How many apples?`,a+b);
+  } else if(level==="2nd Grade Math"){
+   const k=i%8;
+   if(k===0)add(`What is ${20+a} + ${10+b}?`,30+a+b);
+   if(k===1)add(`What is ${50+a} − ${b}?`,50+a-b);
+   if(k===2)add(`What is ${i%5+2} × 2?`,(i%5+2)*2);
+   if(k===3)add(`How many minutes are in ${i%3+1} hours?`,(i%3+1)*60);
+   if(k===4)add(`What is the value of the 5 in ${500+(i%10)*7}?`,500);
+   if(k===5)add(`What is ${a} + ${a}?`,2*a);
+   if(k===6)add(`A toy costs $${i%8+2}. You pay $${i%8+5}. How much change?`,3);
+   if(k===7)add(`How many sides do 2 triangles have altogether?`,6);
+  } else if(level==="3rd Grade Math" || level==="4th Grade Math" || level==="5th Grade Math"){
+   const k=i%10;
+   if(k===0)add(`What is ${a} × ${b}?`,a*b);
+   if(k===1)add(`What is ${(a*b)} ÷ ${a}?`,b);
+   if(k===2)add(`What is ${100+a*11} + ${b*17}?`,100+a*11+b*17);
+   if(k===3)add(`What is ${a*10} − ${b*3}?`,a*10-b*3);
+   if(k===4)add(`What is the area of a rectangle ${a} cm by ${b} cm?`,a*b);
+   if(k===5)add(`What is the perimeter of a square with side ${a}?`,4*a);
+   if(k===6)add(`What is ${i%8+1}/ ${i%8+1} as a simplified fraction?`,`1`);
+   if(k===7)add(`What is ${a}/10 as a decimal?`,`${(a/10).toFixed(1)}`);
+   if(k===8)add(`What is ${a*a}?`,a*a);
+   if(k===9)add(`Round ${1234+i*37} to the nearest hundred.`,Math.round((1234+i*37)/100)*100);
+  } else if(["6th Grade Math","7th Grade Math","8th Grade Math","Arithmetic","Pre-Algebra"].includes(level)){
+   const k=i%10;
+   if(k===0)add(`Evaluate: ${a} + (${b} × ${c})`,a+b*c);
+   if(k===1)add(`Solve for x: x + ${a} = ${a+b}`,b);
+   if(k===2)add(`Solve for x: ${a}x = ${a*b}`,b);
+   if(k===3)add(`What is ${a}/${a+b} + ${b}/${a+b} as a simplified fraction?`,`1`);
+   if(k===4)add(`What is ${a*10}% of ${b*10}?`,a*b);
+   if(k===5)add(`Simplify: ${a}x + ${b}x. Give the coefficient.`,a+b);
+   if(k===6)add(`What is ${a}²?`,a*a);
+   if(k===7)add(`What is the absolute value of −${a}?`,a);
+   if(k===8)add(`A ratio is ${a}:${a*2}. What is the second number when the first is 1?`,2);
+   if(k===9)add(`What is the mean of ${a}, ${a+2}, and ${a+4}?`,a+2);
+  } else if(level==="Geometry" || ["9th Grade Math","10th Grade Math"].includes(level)){
+   const k=i%10;
+   if(k===0)add(`A triangle has angles ${30+i%4*5}° and ${60+i%3*5}°. Find the third angle.`,180-(30+i%4*5)-(60+i%3*5));
+   if(k===1)add(`Find the area of a circle with radius ${i%5+1}. Use π and give the coefficient of π.`,(i%5+1)**2);
+   if(k===2)add(`Find the hypotenuse of a right triangle with legs ${3*(i%3+1)} and ${4*(i%3+1)}.`,5*(i%3+1));
+   if(k===3)add(`Find the area of a triangle with base ${a*2} and height ${b}.`,a*b);
+   if(k===4)add(`Find the volume of a cube with side ${c}.`,c**3);
+   if(k===5)add(`A rectangle is ${a} by ${b}. Find its perimeter.`,2*(a+b));
+   if(k===6)add(`Two supplementary angles: one is ${70+i%4*10}°. Find the other.`,180-(70+i%4*10));
+   if(k===7)add(`How many degrees are in the interior angle sum of a ${i%4+3}-sided polygon?`,((i%4+3)-2)*180);
+   if(k===8)add(`Find the distance between (0,0) and (${3*(i%3+1)},${4*(i%3+1)}).`,5*(i%3+1));
+   if(k===9)add(`A circle has diameter ${2*c}. What is its circumference in terms of π? Give the coefficient.`,2*c);
+  } else if(level==="Algebra I" || level==="Algebra II"){
+   const k=i%10;
+   if(k===0)add(`Solve: ${a}x + ${b} = ${a*c+b}.`,c);
+   if(k===1)add(`Solve: ${a}(x − ${b}) = ${a*c}.`,c+b);
+   if(k===2)add(`Factor: x² − ${a*a}. What is the positive solution to x² − ${a*a}=0?`,a);
+   if(k===3)add(`Evaluate f(x) = ${a}x + ${b} when x = ${c}.`,a*c+b);
+   if(k===4)add(`Solve: x² = ${a*a}. Give the positive solution.`,a);
+   if(k===5)add(`Simplify the coefficient: ${a}x² + ${b}x².`,a+b);
+   if(k===6)add(`Solve: ${a}x − ${b} = ${a*c-b}.`,c);
+   if(k===7)add(`What is the slope of y = ${a}x + ${b}?`,a);
+   if(k===8)add(`Expand: ${a}(x + ${b}). What is the constant term?`,a*b);
+   if(k===9)add(`Solve: 2x + ${a} = ${a+2*c}.`,c);
+  } else if(level==="Trigonometry"){
+   const vals=[["sin(0°)","0"],["cos(0°)","1"],["sin(30°)","1/2"],["cos(60°)","1/2"],["sin(90°)","1"],["cos(90°)","0"],["tan(45°)","1"],["sin(180°)","0"],["cos(180°)","-1"],["How many radians are in 180°?","π"]];
+   add(...vals[i%vals.length]);
+  } else if(level==="Precalculus" || level==="11th Grade Math" || level==="12th Grade Math"){
+   const k=i%10;
+   if(k===0)add(`What is f(${c}) if f(x) = x² + ${b}?`,c*c+b);
+   if(k===1)add(`What is the common difference of ${2+i}, ${5+i}, ${8+i}, ${11+i}, ...?`,3);
+   if(k===2)add(`Simplify: 2^${i%5+1}.`,2**(i%5+1));
+   if(k===3)add(`What is the vertex x-coordinate of y = (x − ${c})² + ${b}?`,c);
+   if(k===4)add(`If log₁₀(1000) = x, what is x?`,3);
+   if(k===5)add(`What is the sum of the first ${c} positive integers?`,c*(c+1)/2);
+   if(k===6)add(`Solve: 3x = ${3*a}.`,a);
+   if(k===7)add(`What is the absolute value of ${-a}?`,a);
+   if(k===8)add(`What is the slope between (0,${b}) and (2,${b+6})?`,3);
+   if(k===9)add(`What is the discriminant of x² − ${a*a} = 0?`,4*a*a);
+  } else if(level==="Calculus I"){
+   const k=i%10;
+   if(k===0)add(`Derivative of f(x) = x^${i%4+2}. Give the exponent on x in the derivative.`,i%4+1);
+   if(k===1)add(`Derivative of f(x) = ${a}x.`,a);
+   if(k===2)add(`Derivative of f(x) = ${a}.`,0);
+   if(k===3)add(`Evaluate ∫ ${a} dx from 0 to 1.`,a);
+   if(k===4)add(`What is the limit of x + ${b} as x approaches ${c}?`,c+b);
+   if(k===5)add(`Derivative of f(x) = x² at x = ${c}.`,2*c);
+   if(k===6)add(`Evaluate ∫ 1 dx from 0 to ${c}.`,c);
+   if(k===7)add(`What is the slope of y = ${a}x² at x = 1?`,2*a);
+   if(k===8)add(`Derivative of f(x) = x³. Give the coefficient of x².`,3);
+   if(k===9)add(`Evaluate the limit of (x²) as x approaches ${c}.`,c*c);
+  } else if(level==="Statistics"){
+   const arr=[a,b,c,a+2,b+1]; const sorted=[...arr].sort((x,y)=>x-y);
+   const k=i%8;
+   if(k===0)add(`Find the mean of ${arr.join(", ")}.`,arr.reduce((x,y)=>x+y,0)/arr.length);
+   if(k===1)add(`Find the median of ${arr.join(", ")}.`,sorted[2]);
+   if(k===2)add(`A fair die is rolled. What is the probability of rolling a 6? Answer as a fraction.`,`1/6`);
+   if(k===3)add(`A bag has ${a} red and ${b} blue balls. How many balls total?`,a+b);
+   if(k===4)add(`A value increases from ${a*10} to ${a*10+b*10}. What is the increase?`,b*10);
+   if(k===5)add(`What is the range of ${arr.join(", ")}?`,Math.max(...arr)-Math.min(...arr));
+   if(k===6)add(`A coin is flipped once. Probability of heads as a percent?`,50);
+   if(k===7)add(`If 3 of 12 students choose art, what percentage is that?`,25);
+  } else if(level==="Linear Algebra"){
+   const k=i%8;
+   if(k===0)add(`Dot product of (${a}, ${b}) and (1, 2).`,a+2*b);
+   if(k===1)add(`Determinant of [[${a}, 0], [0, ${b}]].`,a*b);
+   if(k===2)add(`Magnitude squared of vector (${a}, ${b}).`,a*a+b*b);
+   if(k===3)add(`Solve x + y = ${a+b}, x − y = ${a-b}. Find x.`,a);
+   if(k===4)add(`What is the trace of [[${a}, 2], [3, ${b}]]?`,a+b);
+   if(k===5)add(`Multiply vector (${a}, ${b}) by scalar 2. Give first component.`,2*a);
+   if(k===6)add(`Determinant of [[1, ${a}], [0, 1]].`,1);
+   if(k===7)add(`If A is a 2×2 identity matrix, what is its determinant?`,1);
+  } else {
+   const k=i%8;
+   if(k===0)add(`What is ${a} + ${b}?`,a+b);
+   if(k===1)add(`What is ${a*b} ÷ ${a}?`,b);
+   if(k===2)add(`Solve for x: x + ${a} = ${a+b}.`,b);
+   if(k===3)add(`What is ${a}²?`,a*a);
+   if(k===4)add(`What is ${a} × ${b}?`,a*b);
+   if(k===5)add(`What is ${a+b} − ${b}?`,a);
+   if(k===6)add(`What is the mean of ${a}, ${b}, and ${c}?`,(a+b+c)/3);
+   if(k===7)add(`What is the perimeter of a square with side ${a}?`,4*a);
+  }
+ }
+ // Make the bonus questions level-appropriate and always include two.
+ const bonusByLevel={
+  "Pre-K Math":[q("BONUS: What number comes after 9?",10),q("BONUS: How many sides does a square have?",4)],
+  "Kindergarten Math":[q("BONUS: What is 8 + 7?",15),q("BONUS: What is 10 − 4?",6)],
+  "1st Grade Math":[q("BONUS: What is 9 + 8?",17),q("BONUS: What is 20 − 7?",13)],
+  "2nd Grade Math":[q("BONUS: What is 12 × 3?",36),q("BONUS: How many minutes are in 2 hours?",120)],
+  "3rd Grade Math":[q("BONUS: What is 12 × 12?",144),q("BONUS: What is 144 ÷ 12?",12)],
+  "4th Grade Math":[q("BONUS: What is 3/4 + 1/4?",1),q("BONUS: What is 15²?",225)],
+  "5th Grade Math":[q("BONUS: What is 15% of 200?",30),q("BONUS: A rectangle has area 48 and width 6. Find its length.",8)],
+  "Geometry":[q("BONUS: A rectangle has area 48 and width 6. Find its length.",8),q("BONUS: What is the sum of a triangle's interior angles?",180)],
+  "Trigonometry":[q("BONUS: What is cos(60°)?", "1/2"),q("BONUS: How many radians are in 180°?","π")],
+  "Calculus I":[q("BONUS: Derivative of x⁴: give the coefficient of x³.",4),q("BONUS: Evaluate ∫ 2 dx from 0 to 3.",6)],
+  "Statistics":[q("BONUS: A fair coin is flipped twice. How many equally likely outcomes?",4),q("BONUS: Find the median of 2, 7, 9.",7)],
+  "Linear Algebra":[q("BONUS: Determinant of [[2,0],[0,3]].",6),q("BONUS: Dot product of (1,2) and (3,4).",11)]
+ };
+ return out.slice(0,30).concat(bonusByLevel[level] || [q("BONUS: What is 15% of 200?",30),q("BONUS: A rectangle has area 48 and width 6. Find its length.",8)]);
+}
+let activeQuestions=[];
 
 let currentUser=null, mode="signup", currentTest=null, index=0, answers=[], correct=0, bonusCorrect=0, timeLeft=180, timerId=null;
 
@@ -158,7 +260,7 @@ const $=id=>document.getElementById(id);
 function show(id){["auth","home","test","results"].forEach(x=>$(x).classList.toggle("hidden",x!==id));}
 function getUsers(){return JSON.parse(localStorage.getItem("mathUsers")||"{}")}
 function saveUsers(u){localStorage.setItem("mathUsers",JSON.stringify(u))}
-function key(v){return String(v).trim().toLowerCase().replace(/°/g,"").replace(/π/g,"pi")}
+function key(v){return String(v).trim().toLowerCase().replace(/°/g,"").replace(/π/g,"pi").replace(/[−–]/g,"-").replace(/\s+/g,"")}
 function same(a,b){
   a=key(a); b=key(b);
   if(a===b)return true;
@@ -221,14 +323,17 @@ function showHome(){
  show("home");
 }
 function startTest(type){
- currentTest=type; index=0; answers=[]; correct=0; bonusCorrect=0; timeLeft=180;
- $("testName").textContent=type==="geometry"?"📐 Geometry":"🧮 5th Grade Math";
+ currentTest=type; activeQuestions=makeQuestions(type); index=0; answers=[]; correct=0; bonusCorrect=0; timeLeft=180;
+ $("testName").textContent="🧮 "+type;
  clearInterval(timerId); timerId=setInterval(tick,1000);
  $("clockWarning").classList.add("hidden"); show("test"); render();
 }
-function questions(){return currentTest==="geometry"?geometry:fifth}
+function startSelectedTest(){startTest($("levelSelect").value)}
+$("startSelected").onclick=startSelectedTest;
+function questions(){return activeQuestions.slice(0,30)}
+function bonusesForCurrent(){return activeQuestions.slice(30,32)}
 function render(){
- const all=[...questions(),...bonuses], q=all[index];
+ const all=[...questions(),...bonusesForCurrent()], q=all[index];
  $("qCount").textContent=`Question ${index+1} of 32${index>=30?" • BONUS":""}`;
  $("bar").style.width=((index)/32*100)+"%";
  $("question").innerHTML=`<div class="question">${q[0]}</div>`;
@@ -251,7 +356,7 @@ $("quit").onclick=()=>{if(confirm("Quit this test? Your current attempt will not
 function finishTest(timeup){
  clearInterval(timerId); $("clockWarning").classList.add("hidden");
  answers[index]=$("answer").value;
- const all=[...questions(),...bonuses];
+ const all=[...questions(),...bonusesForCurrent()];
  correct=0;bonusCorrect=0;
  for(let i=0;i<30;i++)if(same(answers[i]||"",all[i][1]))correct++;
  for(let i=30;i<32;i++)if(same(answers[i]||"",all[i][1]))bonusCorrect++;
@@ -260,7 +365,7 @@ function finishTest(timeup){
  const max=110;
  const label=percent>100?`${percent}% (bonus!)`:`${percent}%`;
  const users=getUsers(), u=users[currentUser];
- u.scores=u.scores||[];u.scores.push({test:currentTest==="geometry"?"Geometry":"5th Grade Math",percent:label,date:new Date().toLocaleString()});
+ u.scores=u.scores||[];u.scores.push({test:currentTest,percent:label,date:new Date().toLocaleString()});
  users[currentUser]=u;saveUsers(users);
  $("resultText").innerHTML=`
    <p><b>Regular score:</b> ${correct}/30</p>
