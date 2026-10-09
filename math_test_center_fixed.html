@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Test Center</title>
+<style>
+*{box-sizing:border-box} body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#eaf2ff,#f8fbff);color:#172033}
+.app{max-width:900px;margin:0 auto;padding:24px}.card{background:white;border-radius:20px;padding:28px;box-shadow:0 10px 35px #0001;margin:20px 0}
+h1,h2{margin-top:0}.center{text-align:center}.hidden{display:none!important}
+input{width:100%;padding:14px;border:2px solid #d9e0eb;border-radius:10px;font-size:16px;margin:7px 0 14px}
+button{border:0;border-radius:10px;padding:12px 18px;font-size:16px;font-weight:700;cursor:pointer;background:#2563eb;color:white;margin:5px}
+button.secondary{background:#64748b}.danger{color:#b91c1c}.error{color:#b91c1c;font-weight:700}.success{color:#15803d;font-weight:700}
+.menu button{display:block;width:100%;margin:10px 0;padding:17px}.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.timer{font-size:25px;font-weight:800;background:#eef2ff;padding:9px 15px;border-radius:12px}.warning{background:#fee2e2;color:#b91c1c;animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.05)}}
+.progress{height:12px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin:14px 0}.bar{height:100%;width:0;background:#2563eb;transition:.2s}
+.question{font-size:24px;font-weight:700;margin:25px 0}.hint{color:#64748b}.clock-warning{position:fixed;right:24px;top:18px;width:72px;height:72px;border-radius:50%;background:white;border:5px solid #dc2626;box-shadow:0 5px 20px #0003;display:flex;align-items:center;justify-content:center;font-size:38px;z-index:20;animation:shake .45s infinite}
+@keyframes shake{25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+.results{font-size:22px;line-height:1.6}.small{font-size:13px;color:#64748b}
+.badge{display:inline-block;padding:5px 9px;border-radius:99px;background:#dbeafe;color:#1d4ed8;font-weight:700}
+</style>
+</head>
+<body>
+<div class="app">
+
+<section id="auth" class="card">
+  <div class="center">
+    <h1>📚 Math Test Center</h1>
+    <p>Create an account or sign in to keep your scores.</p>
+  </div>
+  <div id="authForms">
+    <h2 id="authTitle">Create Account</h2>
+    <label>Email</label><input id="email" type="email" placeholder="you@example.com">
+    <label>Password</label>
+    <div style="position:relative">
+      <input id="password" type="password" placeholder="Choose your own password" style="padding-right:50px">
+      <button type="button" class="secondary" id="togglePassword" aria-label="Show password" style="position:absolute;right:5px;top:5px;margin:0;padding:8px 10px">👁️</button>
+    </div>
+    <div id="confirmWrap"><label>Confirm Password</label>
+      <div style="position:relative">
+        <input id="confirmPassword" type="password" placeholder="Type your password again" style="padding-right:50px">
+        <button type="button" class="secondary" id="toggleConfirm" aria-label="Show confirmation password" style="position:absolute;right:5px;top:5px;margin:0;padding:8px 10px">👁️</button>
+      </div>
+    </div>
+    <button id="authBtn">Create Account</button>
+    <button class="secondary" id="switchAuth">I already have an account</button>
+    <p id="authMsg"></p>
+    <p class="small">Demo account storage uses this browser's local storage. Do not use a real password.</p>
+  </div>
+</section>
+
+<section id="home" class="card hidden">
+  <div class="topbar"><div><h1>Welcome! 👋</h1><p id="who"></p></div><button class="secondary" id="logout">Log Out</button></div>
+  <h2>Choose a test</h2>
+  <div class="menu">
+    <button onclick="startTest('geometry')">📐 Geometry — 30 Questions + 2 Bonuses</button>
+    <button onclick="startTest('fifth')">🧮 5th Grade Math — 30 Questions + 2 Bonuses</button>
+  </div>
+  <div id="history"></div>
+</section>
+
+<section id="test" class="card hidden">
+  <div class="topbar">
+    <div><span class="badge" id="testName"></span><div class="small" id="qCount"></div></div>
+    <div class="timer" id="timer">3:00</div>
+  </div>
+  <div class="progress"><div class="bar" id="bar"></div></div>
+  <div id="question"></div>
+  <input id="answer" autocomplete="off" placeholder="Type your answer here">
+  <p class="hint">Type your answer, then press Next. Answers are saved as you go.</p>
+  <button id="next">Next Question →</button>
+  <button class="secondary" id="quit">Quit Test</button>
+</section>
+
+<section id="results" class="card hidden">
+  <div class="center"><h1>🎉 Test Complete!</h1></div>
+  <div class="results" id="resultText"></div>
+  <button onclick="goHome()">Back to Test Center</button>
+</section>
+
+</div>
+<div id="clockWarning" class="clock-warning hidden" title="30 seconds remaining">🕐</div>
+
+<script>
+const geometry = [
+["A triangle has angles 50° and 60°. What is the third angle?","70"],
+["How many sides does a hexagon have?","6"],
+["What is the perimeter of a square with side 8 cm?","32"],
+["What is the area of a rectangle 7 cm by 5 cm?","35"],
+["How many degrees are in a right angle?","90"],
+["A shape with 4 equal sides is called what?","square"],
+["What is the area of a triangle with base 10 and height 6?","30"],
+["How many faces does a cube have?","6"],
+["What is the perimeter of a rectangle 9 by 4?","26"],
+["How many degrees are in a full turn?","360"],
+["What is the name of a triangle with 3 equal sides?","equilateral"],
+["How many edges does a cube have?","12"],
+["What is the area of a square with side 9?","81"],
+["A line segment from the center of a circle to its edge is called what?","radius"],
+["What is the diameter of a circle with radius 5?","10"],
+["How many vertices does a rectangular prism have?","8"],
+["What is the perimeter of a triangle with sides 5, 6, and 7?","18"],
+["Parallel lines do what?","never intersect"],
+["What is 1/2 of a 90° angle?","45"],
+["How many sides does an octagon have?","8"],
+["What is the area of a rectangle 12 by 3?","36"],
+["What is the perimeter of a square with side 11?","44"],
+["A 3-D shape with two circular bases is a what?","cylinder"],
+["How many vertices does a triangular prism have?","6"],
+["What is the sum of the angles in a triangle?","180"],
+["What is the area of a square with side 12?","144"],
+["A shape with 5 sides is called a what?","pentagon"],
+["How many degrees are in a straight angle?","180"],
+["What is the volume of a cube with side 3?","27"],
+["What is the circumference of a circle formula using π and diameter?","πd"]
+];
+const fifth = [
+["What is 4,325 + 2,718?","7043"],
+["What is 8,000 - 3,456?","4544"],
+["What is 36 × 7?","252"],
+["What is 864 ÷ 8?","108"],
+["What is 3/4 + 1/4?","1"],
+["What is 5/6 - 2/6?","1/2"],
+["What is 0.5 as a fraction?","1/2"],
+["What is 3.75 + 2.4?","6.15"],
+["What is 25% of 80?","20"],
+["Round 6,748 to the nearest hundred.","6700"],
+["What is 7 × 8 × 2?","112"],
+["What is 1/5 of 45?","9"],
+["What is the greatest common factor of 12 and 18?","6"],
+["What is the least common multiple of 4 and 6?","12"],
+["What is 2.5 × 4?","10"],
+["What is 9.6 ÷ 3?","3.2"],
+["A box has 24 pencils shared equally among 6 students. How many each?","4"],
+["What is 2/3 of 18?","12"],
+["Write 0.75 as a fraction in simplest form.","3/4"],
+["What is 5²?","25"],
+["What is the perimeter of a rectangle 10 by 6?","32"],
+["What is the area of a rectangle 9 by 8?","72"],
+["What is 1,000 × 6?","6000"],
+["What is 7,200 ÷ 100?","72"],
+["What is 45% of 100?","45"],
+["What is 3/5 as a decimal?","0.6"],
+["What is 4.2 + 1.85?","6.05"],
+["What is 12 × 15?","180"],
+["What is 5,000 - 999?","4001"],
+["A recipe needs 3/4 cup of sugar. How much is that in decimal form?","0.75"]
+];
+const bonuses = [
+["BONUS: What is 15% of 200?","30"],
+["BONUS: A rectangle has area 48 and width 6. What is its length?","8"]
+];
+
+let currentUser=null, mode="signup", currentTest=null, index=0, answers=[], correct=0, bonusCorrect=0, timeLeft=180, timerId=null;
+
+const $=id=>document.getElementById(id);
+function show(id){["auth","home","test","results"].forEach(x=>$(x).classList.toggle("hidden",x!==id));}
+function getUsers(){return JSON.parse(localStorage.getItem("mathUsers")||"{}")}
+function saveUsers(u){localStorage.setItem("mathUsers",JSON.stringify(u))}
+function key(v){return String(v).trim().toLowerCase().replace(/°/g,"").replace(/π/g,"pi")}
+function same(a,b){
+  a=key(a); b=key(b);
+  if(a===b)return true;
+  const nums=s=>s.replace(/,/g,"").replace(/\s/g,"");
+  if(nums(a)===nums(b))return true;
+  const map={"one":"1","two":"2","three":"3","four":"4","five":"5","six":"6","seven":"7","eight":"8","nine":"9","ten":"10"};
+  return map[a]===b || map[b]===a;
+}
+function hashDemo(s){
+  let h=2166136261;
+  for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}
+  return String(h>>>0);
+}
+function oldHashDemo(s){let h=0;for(let i=0;i<s.length;i++)h=((h<<5)-h)+s.charCodeAt(i)|0;return String(h)}
+
+function toggleField(id,btnId){
+ const input=$(id), btn=$(btnId);
+ const visible=input.type==="text";
+ input.type=visible?"password":"text";
+ btn.textContent=visible?"👁️":"🙈";
+ btn.setAttribute("aria-label",visible?"Show password":"Hide password");
+}
+$("togglePassword").onclick=()=>toggleField("password","togglePassword");
+$("toggleConfirm").onclick=()=>toggleField("confirmPassword","toggleConfirm");
+
+$("authBtn").onclick=()=>{
+ const email=$("email").value.trim().toLowerCase(), pass=$("password").value;
+ const confirm=$("confirmPassword").value;
+ $("authMsg").className="error";
+ if(!email||!email.includes("@")){$("authMsg").textContent="Enter a valid email address.";return}
+ if(pass.length<4){$("authMsg").textContent="Your password must be at least 4 characters.";return}
+ if(mode==="signup" && pass!==confirm){$("authMsg").textContent="The passwords do not match.";return}
+ const users=getUsers();
+ if(mode==="signup"){
+   if(users[email]){$("authMsg").textContent="That account already exists.";return}
+   users[email]={password:hashDemo(pass),scores:[]};saveUsers(users);currentUser=email;showHome();
+ }else{
+   if(!users[email]){$("authMsg").textContent="No account found for that email. Choose Create Account to register.";return}
+   const saved=users[email].password;
+   if(saved!==hashDemo(pass) && saved!==oldHashDemo(pass)){$("authMsg").textContent="Password is incorrect. Check the email and password, or create a new account with a different email.";return}
+   if(saved!==hashDemo(pass)){users[email].password=hashDemo(pass);saveUsers(users)}
+   currentUser=email;showHome();
+ }
+};
+$("switchAuth").onclick=()=>{
+ mode=mode==="signup"?"login":"signup";
+ $("authTitle").textContent=mode==="signup"?"Create Account":"Sign In";
+ $("authBtn").textContent=mode==="signup"?"Create Account":"Sign In";
+ $("switchAuth").textContent=mode==="signup"?"I already have an account":"Create a new account";
+ $("confirmWrap").classList.toggle("hidden", mode!=="signup");
+ $("confirmPassword").value="";
+ $("authMsg").textContent="";
+};
+$("logout").onclick=()=>{currentUser=null;show("auth")};
+
+function showHome(){
+ $("who").textContent="Signed in as "+currentUser;
+ const s=getUsers()[currentUser].scores||[];
+ $("history").innerHTML=s.length?("<h3>Previous Scores</h3>"+s.slice(-6).reverse().map(x=>`<p>${x.test}: <b>${x.percent}%</b> — ${x.date}</p>`).join("")):"<p>No scores yet.</p>";
+ show("home");
+}
+function startTest(type){
+ currentTest=type; index=0; answers=[]; correct=0; bonusCorrect=0; timeLeft=180;
+ $("testName").textContent=type==="geometry"?"📐 Geometry":"🧮 5th Grade Math";
+ clearInterval(timerId); timerId=setInterval(tick,1000);
+ $("clockWarning").classList.add("hidden"); show("test"); render();
+}
+function questions(){return currentTest==="geometry"?geometry:fifth}
+function render(){
+ const all=[...questions(),...bonuses], q=all[index];
+ $("qCount").textContent=`Question ${index+1} of 32${index>=30?" • BONUS":""}`;
+ $("bar").style.width=((index)/32*100)+"%";
+ $("question").innerHTML=`<div class="question">${q[0]}</div>`;
+ $("answer").value=answers[index]||"";
+ $("answer").focus();
+}
+function tick(){
+ timeLeft--;
+ $("timer").textContent=`${Math.floor(timeLeft/60)}:${String(timeLeft%60).padStart(2,"0")}`;
+ if(timeLeft<=30)$("clockWarning").classList.remove("hidden");
+ if(timeLeft<=0){clearInterval(timerId);finishTest(true)}
+}
+$("next").onclick=()=>{
+ answers[index]=$("answer").value;
+ if(index<32){index++; if(index<32)render(); else finishTest(false)}
+};
+$("answer").addEventListener("keydown",e=>{if(e.key==="Enter")$("next").click()});
+$("quit").onclick=()=>{if(confirm("Quit this test? Your current attempt will not be scored.")){clearInterval(timerId);$("clockWarning").classList.add("hidden");showHome()}};
+
+function finishTest(timeup){
+ clearInterval(timerId); $("clockWarning").classList.add("hidden");
+ answers[index]=$("answer").value;
+ const all=[...questions(),...bonuses];
+ correct=0;bonusCorrect=0;
+ for(let i=0;i<30;i++)if(same(answers[i]||"",all[i][1]))correct++;
+ for(let i=30;i<32;i++)if(same(answers[i]||"",all[i][1]))bonusCorrect++;
+ // Regular questions make 100%. Each bonus adds 5 percentage points, capped at 110%.
+ let percent=Math.round((correct/30)*100+bonusCorrect*5);
+ const max=110;
+ const label=percent>100?`${percent}% (bonus!)`:`${percent}%`;
+ const users=getUsers(), u=users[currentUser];
+ u.scores=u.scores||[];u.scores.push({test:currentTest==="geometry"?"Geometry":"5th Grade Math",percent:label,date:new Date().toLocaleString()});
+ users[currentUser]=u;saveUsers(users);
+ $("resultText").innerHTML=`
+   <p><b>Regular score:</b> ${correct}/30</p>
+   <p><b>Bonus score:</b> ${bonusCorrect}/2</p>
+   <p><b>Final grade:</b> ${label}</p>
+   <p>${timeup?"⏰ Time ran out!":"✅ You finished before time ran out."}</p>
+   <p class="small">Regular questions are graded out of 100%. Each correct bonus adds 5 percentage points, up to 110%.</p>`;
+ show("results");
+}
+function goHome(){showHome()}
+$("authTitle").textContent="Create Account";
+$("authBtn").textContent="Create Account";
+$("switchAuth").textContent="I already have an account";
+$("confirmWrap").classList.remove("hidden");
+show("auth");
+</script>
+</body>
+</html>
